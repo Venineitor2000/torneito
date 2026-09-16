@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cuadro Conceptual de Torneo 1 vs 1</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #070B14;
+      color: #E2E8F0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    .font-mono-num {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Scrollbar estilizada y discreta */
+    ::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0B1120;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1E293B;
+      border-radius: 9999px;
+      border: 2px solid #0B1120;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+
+    /* Animación de pulso suave para el campeón */
+    @keyframes trophyGlow {
+      0%, 100% { filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.45)); }
+      50% { filter: drop-shadow(0 0 22px rgba(245, 158, 11, 0.85)); }
+    }
+    .trophy-glow {
+      animation: trophyGlow 2.5s infinite ease-in-out;
+    }
+
+    /* Animación de flujo de flechas activas */
+    @keyframes dashFlow {
+      to {
+        stroke-dashoffset: -24;
+      }
+    }
+    .flow-active {
+      stroke-dasharray: 6 3;
+      animation: dashFlow 1.2s linear infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-2.5 sm:p-5">
+
+  <main class="max-w-7xl mx-auto w-full space-y-3 sm:space-y-4">
+    
+    <!-- Encabezado superior -->
+    <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-800/80">
+      <div>
+        <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[11px] font-semibold tracking-wide uppercase">
+          <span>⚔️</span> Cuadro Conceptual • 1 vs 1
+        </div>
+        <h1 class="text-lg sm:text-2xl font-extrabold text-white tracking-tight mt-1 flex items-center gap-2">
+          Diagrama de Combates
+          <span class="text-xs font-medium px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">Con Flechas</span>
+        </h1>
+      </div>
+
+      <!-- Acciones de Zoom y Exportación -->
+      <div class="flex items-center gap-2 self-end sm:self-auto">
+        <div class="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-1 text-xs font-semibold text-slate-300 shadow-sm">
+          <button id="btnZoomOut" class="w-7 h-7 flex items-center justify-center hover:text-amber-400 hover:bg-slate-800 rounded active:scale-95" title="Alejar">🔍−</button>
+          <span id="zoomLabel" class="w-10 text-center font-mono-num text-[11px] text-slate-400 select-none">100%</span>
+          <button id="btnZoomIn" class="w-7 h-7 flex items-center justify-center hover:text-amber-400 hover:bg-slate-800 rounded active:scale-95" title="Acercar">🔍+</button>
+          <button id="btnResetZoom" class="px-2 h-7 hover:text-white hover:bg-slate-800 rounded text-[10px] uppercase font-bold border-l border-slate-800 ml-1">Reset</button>
+        </div>
+
+        <button id="btnCopyText" class="flex items-center gap-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs transition active:scale-95 shadow">
+          📋 Copiar WhatsApp
+        </button>
+      </div>
+    </header>
+
+    <!-- Panel selector de Jugadores (Super simple y táctil para celular) -->
+    <section class="bg-slate-900/90 border border-slate-800/90 rounded-xl p-3 sm:p-4 shadow-xl backdrop-blur-sm space-y-3">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <label for="playerInput" class="text-xs sm:text-sm font-semibold text-slate-200 flex items-center gap-2">
+          <span class="text-base">👥</span> Participantes en el Torneo:
+        </label>
+        
+        <!-- Botones táctiles grandes -->
+        <div class="flex items-center gap-2">
+          <button id="btnDecrease" class="w-11 h-11 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-bold text-xl flex items-center justify-center active:scale-95 border border-slate-700 select-none">
+            −
+          </button>
+          
+          <input 
+            type="number" 
+            id="playerInput" 
+            min="2" 
+            max="32" 
+            value="13" 
+            class="w-20 h-11 bg-slate-950 border-2 border-amber-500 text-amber-300 text-center font-mono-num font-bold text-xl rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+          >
+          
+          <button id="btnIncrease" class="w-11 h-11 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-bold text-xl flex items-center justify-center active:scale-95 border border-slate-700 select-none">
+            +
+          </button>
+
+          <button id="btnResetWinners" class="ml-2 px-2.5 h-11 bg-slate-800/80 hover:bg-rose-950/40 hover:text-rose-300 hover:border-rose-600/50 text-slate-400 text-xs rounded-lg border border-slate-700 flex items-center gap-1 transition" title="Reiniciar ganadores marcados">
+            🔄 Reiniciar
+          </button>
+        </div>
+      </div>
+
+      <!-- Accesos Rápidos de cantidad -->
+      <div class="flex flex-wrap items-center gap-1.5 text-xs pt-1 border-t border-slate-800/80">
+        <span class="text-slate-400 text-[11px] font-medium mr-1">Rápidos:</span>
+        <button onclick="setPlayers(4)" class="px-2 py-1 bg-slate-800/70 hover:bg-slate-700 rounded text-slate-300 text-xs">4</button>
+        <button onclick="setPlayers(8)" class="px-2 py-1 bg-slate-800/70 hover:bg-slate-700 rounded text-slate-300 text-xs">8</button>
+        <button onclick="setPlayers(10)" class="px-2 py-1 bg-slate-800/70 hover:bg-slate-700 rounded text-slate-300 text-xs">10</button>
+        <button onclick="setPlayers(12)" class="px-2 py-1 bg-slate-800/70 hover:bg-slate-700 rounded text-slate-300 text-xs">12</button>
+        <button onclick="setPlayers(13)" class="px-2.5 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/50 rounded font-bold text-xs">13 (Tu Torneo)</button>
+        <button onclick="setPlayers(16)" class="px-2 py-1 bg-slate-800/70 hover:bg-slate-700 rounded text-slate-300 text-xs">16</button>
+        <button onclick="setPlayers(24)" class="px-2 py-1 bg-slate-800/70 hover:bg-slate-700 rounded text-slate-300 text-xs">24</button>
+        <button onclick="setPlayers(32)" class="px-2 py-1 bg-slate-800/70 hover:bg-slate-700 rounded text-slate-300 text-xs">32</button>
+      </div>
+
+      <!-- Resumen inteligente de pases y rondas -->
+      <div id="bracketSummary" class="text-xs text-slate-300 bg-slate-950/80 p-2.5 rounded-lg border border-slate-800 flex items-center justify-between flex-wrap gap-2">
+        <!-- Dinámico con JS -->
+      </div>
+    </section>
+
+    <!-- Contenedor del Cuadro Conceptual de Torneo -->
+    <section class="bg-slate-950 border border-slate-800 rounded-xl overflow-hidden shadow-2xl relative flex flex-col">
+      
+      <!-- Subbarra de navegación y ayuda móvil -->
+      <div class="flex items-center justify-between px-3 py-2 bg-slate-900/90 border-b border-slate-800 text-[11px] text-slate-400">
+        <span class="flex items-center gap-2 font-semibold text-slate-300">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+          Diagrama de Llaves con Flechas de Flujo
+        </span>
+        <span class="text-amber-400 font-medium sm:hidden flex items-center gap-1">
+          👉 Desliza horizontalmente
+        </span>
+        <span class="hidden sm:inline-block text-slate-400 text-xs">
+          💡 Puedes tocar a cualquier duelista para declararlo ganador y hacer fluir la flecha
+        </span>
+      </div>
+
+      <!-- Lienzo SVG con scroll horizontal fluido -->
+      <div id="diagramScrollArea" class="overflow-auto p-3 sm:p-6 w-full cursor-grab active:cursor-grabbing">
+        <div id="diagramTransformWrapper" class="transition-transform duration-150 origin-top-left inline-block">
+          <svg id="tournamentSvg" class="block select-none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <!-- Marcador de flecha inactiva (Gris) -->
+              <marker id="arrow-default" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#475569" />
+              </marker>
+              <!-- Marcador de flecha activa / ganadora (Dorado) -->
+              <marker id="arrow-active" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#F59E0B" />
+              </marker>
+              <!-- Marcador de flecha para pase directo (Verde esmeralda) -->
+              <marker id="arrow-bye" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#10B981" />
+              </marker>
+            </defs>
+
+            <!-- Capa 1: Flechas y conectores conceptuales -->
+            <g id="connectionsLayer"></g>
+
+            <!-- Capa 2: Tarjetas de combates y Nodos -->
+            <g id="nodesLayer"></g>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mini Guía Conceptual al pie -->
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+      <div class="bg-slate-900/60 border border-slate-800/80 rounded-lg p-2.5 flex items-start gap-2">
+        <span class="text-amber-400 font-bold text-base leading-none">1</span>
+        <div>
+          <span class="font-bold text-slate-200">Números directos:</span>
+          <p class="text-slate-400 text-[11px] mt-0.5">Cada participante se identifica como <code class="text-amber-300 font-mono-num">[01]</code>, <code class="text-amber-300 font-mono-num">[02]</code> hasta <code class="text-amber-300 font-mono-num">[13]</code>.</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/60 border border-slate-800/80 rounded-lg p-2.5 flex items-start gap-2">
+        <span class="text-emerald-400 font-bold text-base leading-none">2</span>
+        <div>
+          <span class="font-bold text-slate-200">Pases Directos [ BYE ]:</span>
+          <p class="text-slate-400 text-[11px] mt-0.5">Los luchadores con pase libre avanzan con flecha verde directamente a Cuartos de Final sin desgastarse.</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/60 border border-slate-800/80 rounded-lg p-2.5 flex items-start gap-2">
+        <span class="text-sky-400 font-bold text-base leading-none">3</span>
+        <div>
+          <span class="font-bold text-slate-200">Progreso con un Toque:</span>
+          <p class="text-slate-400 text-[11px] mt-0.5">Toca el nombre del vencedor de cualquier duelo para que la flecha dorada lo empuje a la siguiente fase.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Notificación Toast Minimalista -->
+  <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-800 border border-amber-400 text-amber-300 px-4 py-2.5 rounded-lg text-xs font-bold shadow-2xl opacity-0 pointer-events-none transition-all duration-200 z-50 flex items-center gap-2">
+    <span>📋</span> <span id="toastMsg">Copiado al portapapeles</span>
+  </div>
+
+  <script>
+    // --- ESTADO GLOBAL ---
+    let currentPlayers = 13;
+    let zoomLevel = 1.0;
+    // Estructura de ganadores: matchWinners[`r${round}_m${match}`] = playerObject
+    let matchWinners = {};
+
+    // Obtener potencia de 2 más cercana (4, 8, 16, 32)
+    function getNextPowerOfTwo(n) {
+      let p = 2;
+      while (p < n) p *= 2;
+      return p;
+    }
+
+    // Título descriptivo de cada columna de ronda
+    function getRoundTitle(roundIndex, totalRounds, hasByes) {
+      const remaining = totalRounds - roundIndex;
+      if (remaining === 1) return "GRAN FINAL";
+      if (remaining === 2) return "SEMIFINALES";
+      if (remaining === 3) return "CUARTOS DE FINAL";
+      if (remaining === 4) return hasByes ? "PRELIMINARES (Octavos)" : "OCTAVOS DE FINAL";
+      if (remaining === 5) return hasByes ? "PRELIMINARES (Dieciseisavos)" : "DIECISEISAVOS";
+      return `RONDA ${roundIndex + 1}`;
+    }
+
+    // Distribución equitativa y balanceada de Byes
+    function calculateByeIndices(totalMatches, byesCount) {
+      const byeSet = new Set();
+      if (byesCount <= 0) return byeSet;
+
+      // Reparto uniforme a lo largo del cuadro
+      for (let b = 0; b < byesCount; b++) {
+        const idx = Math.floor(((b + 1) * totalMatches) / (byesCount + 1));
+        // Si ya está ocupado, busca el vecino libre
+        let target = idx;
+        while (byeSet.has(target) && target < totalMatches) {
+          target++;
+        }
+        if (target >= totalMatches) {
+          target = 0;
+          while (byeSet.has(target)) target++;
+        }
+        byeSet.add(target);
+      }
+      return byeSet;
+    }
+
+    // Inicializar la estructura del torneo
+    function buildTournamentData(N) {
+      const P = getNextPowerOfTwo(N);
+      const totalRounds = Math.log2(P);
+      const totalByes = P - N;
+      const initialMatchesCount = P / 2;
+
+      const byeSet = calculateByeIndices(initialMatchesCount, totalByes);
+
+      // Ronda 0: Duelos iniciales
+      let playerNumber = 1;
+      const rounds = [];
+
+      const r0Matches = [];
+      for (let m = 0; m < initialMatchesCount; m++) {
+        const isBye = byeSet.has(m);
+        if (isBye) {
+          const p1 = {
+            id: playerNumber,
+            numStr: String(playerNumber).padStart(2, '0'),
+            name: `Jugador ${playerNumber}`
+          };
+          playerNumber++;
+          r0Matches.push({
+            id: `r0_m${m}`,
+            round: 0,
+            index: m,
+            isBye: true,
+            player1: p1,
+            player2: { isBye: true, name: "PASE DIRECTO (BYE)" },
+            // Quien tiene BYE pasa automáticamente
+            autoWinner: p1
+          });
+        } else {
+          const p1 = {
+            id: playerNumber,
+            numStr: String(playerNumber).padStart(2, '0'),
+            name: `Jugador ${playerNumber}`
+          };
+          playerNumber++;
+
+          const p2 = {
+            id: playerNumber,
+            numStr: String(playerNumber).padStart(2, '0'),
+            name: `Jugador ${playerNumber}`
+          };
+          playerNumber++;
+
+          r0Matches.push({
+            id: `r0_m${m}`,
+            round: 0,
+            index: m,
+            isBye: false,
+            player1: p1,
+            player2: p2,
+            autoWinner: null
+          });
+        }
+      }
+      rounds.push(r0Matches);
+
+      // Rondas 1 a Final
+      for (let r = 1; r < totalRounds; r++) {
+        const matchesCount = P / Math.pow(2, r + 1);
+        const roundMatches = [];
+        for (let m = 0; m < matchesCount; m++) {
+          roundMatches.push({
+            id: `r${r}_m${m}`,
+            round: r,
+            index: m,
+            isBye: false,
+            feederMatch1: `r${r-1}_m${m * 2}`,
+            feederMatch2: `r${r-1}_m${m * 2 + 1}`,
+            player1: null,
+            player2: null,
+            autoWinner: null
+          });
+        }
+        rounds.push(roundMatches);
+      }
+
+      return {
+        totalPlayers: N,
+        bracketSize: P,
+        totalRounds,
+        totalByes,
+        rounds
+      };
+    }
+
+    //    // Dimensiones para renderizado conceptual
+    const CARD_W = 200;
+    const CARD_H = 76;
+    const COL_GAP = 70; // Espacio horizontal para las flechas
+    const ROW_BASE_H = 92; // Espacio vertical base para la ronda 0
+    const HEADER_OFFSET_Y = 55;
+    const PADDING_X = 25;
+
+    function renderDiagram() {
+      const data = buildTournamentData(currentPlayers);
+      const svg = document.getElementById("tournamentSvg");
+      const connLayer = document.getElementById("connectionsLayer");
+      const nodesLayer = document.getElementById("nodesLayer");
+
+      connLayer.innerHTML = "";
+      nodesLayer.innerHTML = "";
+
+      const totalRounds = data.totalRounds;
+      const initialMatches = data.bracketSize / 2;
+
+      // Dimensiones del SVG
+      const totalWidth = PADDING_X * 2 + (totalRounds + 1) * (CARD_W + COL_GAP);
+      const totalHeight = HEADER_OFFSET_Y + initialMatches * ROW_BASE_H + 30;
+
+      svg.setAttribute("width", totalWidth);
+      svg.setAttribute("height", totalHeight);
+      svg.setAttribute("viewBox", `0 0 ${totalWidth} ${totalHeight}`);
+
+      // Almacén de coordenadas de salida y entrada para las flechas
+      // matchCoords[id] = { outX, outY, inTopX, inTopY, inBottomX, inBottomY, cardX, cardY }
+      const matchCoords = {};
+
+      // Dibujar Títulos de Columnas Conceptuales
+      for (let r = 0; r < totalRounds; r++) {
+        const colX = PADDING_X + r * (CARD_W + COL_GAP);
+        const title = getRoundTitle(r, totalRounds, data.totalByes > 0);
+
+        // Cabecera estilizada
+        const headerG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        headerG.innerHTML = `
+          <rect x="${colX}" y="12" width="${CARD_W}" height="28" rx="6" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
+          <text x="${colX + CARD_W / 2}" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="#94A3B8" letter-spacing="0.5">
+            ${title}
+          </text>
+        `;
+        nodesLayer.appendChild(headerG);
+      }
+
+      // Cabecera del Campeón
+      const champColX = PADDING_X + totalRounds * (CARD_W + COL_GAP);
+      const champHeader = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      champHeader.innerHTML = `
+        <rect x="${champColX}" y="12" width="${CARD_W - 20}" height="28" rx="6" fill="#2E1B05" stroke="#F59E0B" stroke-width="1.2"/>
+        <text x="${champColX + (CARD_W - 20) / 2}" y="30" text-anchor="middle" font-size="11" font-weight="800" fill="#FBBF24" letter-spacing="0.5">
+          🏆 PODIO CAMPEÓN
+        </text>
+      `;
+      nodesLayer.appendChild(champHeader);
+
+      // Propagar ganadores automáticos de BYE
+      data.rounds[0].forEach(m => {
+        if (m.isBye && m.autoWinner) {
+          matchWinners[m.id] = m.autoWinner;
+        }
+      });
+
+      // Calcular posiciones de nodos para cada ronda
+      for (let r = 0; r < totalRounds; r++) {
+        const roundMatches = data.rounds[r];
+        const colX = PADDING_X + r * (CARD_W + COL_GAP);
+
+        roundMatches.forEach((m, idx) => {
+          let cardY = 0;
+
+          if (r === 0) {
+            cardY = HEADER_OFFSET_Y + idx * ROW_BASE_H + (ROW_BASE_H - CARD_H) / 2;
+          } else {
+            // Posición centrada entre sus dos alimentadores anteriores
+            const feeder1 = matchCoords[m.feederMatch1];
+            const feeder2 = matchCoords[m.feederMatch2];
+            const midY = (feeder1.outY + feeder2.outY) / 2;
+            cardY = midY - CARD_H / 2;
+
+            // Determinar jugadores procedentes de las rondas previas
+            m.player1 = matchWinners[m.feederMatch1] || null;
+            m.player2 = matchWinners[m.feederMatch2] || null;
+          }
+
+          // Guardar puntos de conexión
+          matchCoords[m.id] = {
+            cardX: colX,
+            cardY: cardY,
+            outX: colX + CARD_W,
+            outY: cardY + CARD_H / 2,
+            inTopX: colX,
+            inTopY: cardY + 24,
+            inBottomX: colX,
+            inBottomY: cardY + 54
+          };
+        });
+      }
+
+      //      // 1. DIBUJAR FLECHAS DE CONEXIÓN CONCEPTUAL
+      for (let r = 0; r < totalRounds - 1; r++) {
+        const roundMatches = data.rounds[r];
+
+        roundMatches.forEach((m) => {
+          const source = matchCoords[m.id];
+          const nextMatchIndex = Math.floor(m.index / 2);
+          const nextMatchId = `r${r + 1}_m${nextMatchIndex}`;
+          const target = matchCoords[nextMatchId];
+
+          if (!target) return;
+
+          // ¿Entra por arriba o por abajo del combate siguiente?
+          const isTopFeeder = (m.index % 2 === 0);
+          const targetX = isTopFeeder ? target.inTopX : target.inBottomX;
+          const targetY = isTopFeeder ? target.inTopY : target.inBottomY;
+
+          // ¿Hay ganador activo en este combate?
+          const currentWinner = matchWinners[m.id];
+          const isSelected = !!currentWinner;
+          const isByePath = m.isBye;
+
+          // Curva Bezier estética tipo diagrama de flujo
+          const deltaX = (targetX - source.outX) * 0.55;
+          const pathD = `M ${source.outX} ${source.outY} C ${source.outX + deltaX} ${source.outY}, ${targetX - deltaX} ${targetY}, ${targetX - 4} ${targetY}`;
+
+          let strokeColor = "#334155";
+          let markerUrl = "url(#arrow-default)";
+          let extraClass = "";
+
+          if (isByePath) {
+            strokeColor = "#10B981";
+            markerUrl = "url(#arrow-bye)";
+          } else if (isSelected) {
+            strokeColor = "#F59E0B";
+            markerUrl = "url(#arrow-active)";
+            extraClass = "flow-active";
+          }
+
+          const pathEl = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          pathEl.setAttribute("d", pathD);
+          pathEl.setAttribute("fill", "none");
+          pathEl.setAttribute("stroke", strokeColor);
+          pathEl.setAttribute("stroke-width", isSelected || isByePath ? "2.2" : "1.7");
+          pathEl.setAttribute("marker-end", markerUrl);
+          if (extraClass) pathEl.setAttribute("class", extraClass);
+
+          connLayer.appendChild(pathEl);
+        });
+      }
+
+      // Flecha de la Final hacia el Podio del Campeón
+      const finalMatch = data.rounds[totalRounds - 1][0];
+      const finalCoords = matchCoords[finalMatch.id];
+      const champTargetX = champColX;
+      const champTargetY = finalCoords.outY;
+      const champWinner = matchWinners[finalMatch.id];
+
+      const finalPathD = `M ${finalCoords.outX} ${finalCoords.outY} L ${champTargetX - 6} ${champTargetY}`;
+      const finalPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      finalPath.setAttribute("d", finalPathD);
+      finalPath.setAttribute("fill", "none");
+      finalPath.setAttribute("stroke", champWinner ? "#F59E0B" : "#475569");
+      finalPath.setAttribute("stroke-width", champWinner ? "3" : "1.8");
+      finalPath.setAttribute("marker-end", champWinner ? "url(#arrow-active)" : "url(#arrow-default)");
+      if (champWinner) finalPath.setAttribute("class", "flow-active");
+      connLayer.appendChild(finalPath);
+
+      //      // 2. DIBUJAR TARJETAS CONCEPTUALES DE COMBATES
+      for (let r = 0; r < totalRounds; r++) {
+        const roundMatches = data.rounds[r];
+
+        roundMatches.forEach((m) => {
+          const coords = matchCoords[m.id];
+          const winner = matchWinners[m.id];
+
+          const p1 = m.player1;
+          const p2 = m.player2;
+
+          const p1Winner = winner && p1 && (winner.id === p1.id);
+          const p2Winner = winner && p2 && (winner.id === p2.id);
+
+          const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+          group.setAttribute("transform", `translate(${coords.cardX}, ${coords.cardY})`);
+
+          // Fondo de la Tarjeta
+          const cardBorder = winner ? "#F59E0B" : "#1E293B";
+          const cardBg = winner ? "#0F172A" : "#0B1120";
+
+          // Nombre de etiqueta de combate
+          let matchTag = (r === 0) ? `Duelo ${m.index + 1}` : `Llave ${m.index + 1}`;
+          if (r === totalRounds - 1) matchTag = "⚔️ Gran Final";
+
+          // Contenedor visual
+          group.innerHTML = `
+            <!-- Fondo de Tarjeta -->
+            <rect x="0" y="0" width="${CARD_W}" height="${CARD_H}" rx="9" fill="${cardBg}" stroke="${cardBorder}" stroke-width="${winner ? '1.8' : '1'}" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.4))"/>
+            
+            <!-- Etiqueta pequeña superior -->
+            <rect x="7" y="-7" width="70" height="14" rx="3" fill="#1E293B" stroke="#334155" stroke-width="0.8"/>
+            <text x="42" y="3" font-size="8.5" font-weight="700" fill="#94A3B8" text-anchor="middle" font-family="Inter">${matchTag}</text>
+
+            <!-- Fila Luchador 1 -->
+            <g id="slot1_${m.id}" class="cursor-pointer" style="transition: all 0.2s">
+              <rect x="5" y="11" width="${CARD_W - 10}" height="25" rx="5" 
+                    fill="${p1Winner ? 'rgba(245, 158, 11, 0.18)' : '#131C2E'}" 
+                    stroke="${p1Winner ? '#F59E0B' : '#1E293B'}" stroke-width="${p1Winner ? '1.4' : '1'}"/>
+              
+              <!-- Badge con Número de Jugador -->
+              <rect x="10" y="15" width="26" height="17" rx="3" fill="${p1 ? '#1E293B' : '#0B0F19'}"/>
+              <text x="23" y="27" font-size="9.5" font-weight="700" fill="${p1 ? '#F59E0B' : '#475569'}" text-anchor="middle" font-family="JetBrains Mono">
+                ${p1 ? p1.numStr : "--"}
+              </text>
+              
+              <!-- Nombre Jugador 1 -->
+              <text x="42" y="27" font-size="11" font-weight="${p1Winner ? '700' : '600'}" fill="${p1Winner ? '#FBBF24' : (p1 ? '#F1F5F9' : '#64748B')}" font-family="Inter">
+                ${p1 ? p1.name : "Por Definir"}
+              </text>
+
+              <!-- Indicador de Victoria -->
+              ${p1Winner ? '<text x="182" y="27" font-size="10" text-anchor="middle">👑</text>' : ''}
+            </g>
+
+            <!-- Fila Luchador 2 (O Pase Directo) -->
+            <g id="slot2_${m.id}" class="${m.isBye ? '' : 'cursor-pointer'}" style="transition: all 0.2s">
+              <rect x="5" y="40" width="${CARD_W - 10}" height="25" rx="5" 
+                    fill="${m.isBye ? 'rgba(16, 185, 129, 0.12)' : (p2Winner ? 'rgba(245, 158, 11, 0.18)' : '#131C2E')}" 
+                    stroke="${m.isBye ? '#10B981' : (p2Winner ? '#F59E0B' : '#1E293B')}" stroke-width="${m.isBye || p2Winner ? '1.4' : '1'}"/>
+              
+              ${m.isBye ? `
+                <text x="${CARD_W / 2}" y="56" font-size="9.5" font-weight="700" fill="#34D399" text-anchor="middle" font-family="Inter">
+                  ⚡ [ BYE ] PASE DIRECTO
+                </text>
+              ` : `
+                <!-- Badge Jugador 2 -->
+                <rect x="10" y="44" width="26" height="17" rx="3" fill="${p2 ? '#1E293B' : '#0B0F19'}"/>
+                <text x="23" y="56" font-size="9.5" font-weight="700" fill="${p2 ? '#F59E0B' : '#475569'}" text-anchor="middle" font-family="JetBrains Mono">
+                  ${p2 ? p2.numStr : "--"}
+                </text>
+
+                <!-- Nombre Jugador 2 -->
+                <text x="42" y="56" font-size="11" font-weight="${p2Winner ? '700' : '600'}" fill="${p2Winner ? '#FBBF24' : (p2 ? '#F1F5F9' : '#64748B')}" font-family="Inter">
+                  ${p2 ? p2.name : "Por Definir"}
+                </text>
+
+                <!-- Indicador de Victoria -->
+                ${p2Winner ? '<text x="182" y="56" font-size="10" text-anchor="middle">👑</text>' : ''}
+              `}
+            </g>
+          `;
+
+          // Evento de toque/clic para declarar ganador interactivo
+          const s1 = group.querySelector(`#slot1_${m.id}`);
+          const s2 = group.querySelector(`#slot2_${m.id}`);
+
+          if (s1 && p1) {
+            s1.addEventListener("click", () => {
+              toggleWinner(m.id, p1);
+            });
+          }
+
+          if (s2 && p2 && !m.isBye) {
+            s2.addEventListener("click", () => {
+              toggleWinner(m.id, p2);
+            });
+          }
+
+          nodesLayer.appendChild(group);
+        });
+      }
+
+      // 3. TARJETA DEL CAMPEÓN
+      const champGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      const champCardH = 80;
+      const champCardW = CARD_W - 20;
+      const champY = champTargetY - champCardH / 2;
+
+      champGroup.setAttribute("transform", `translate(${champColX}, ${champY})`);
+
+      champGroup.innerHTML = `
+        <rect x="0" y="0" width="${champCardW}" height="${champCardH}" rx="12" 
+              fill="${champWinner ? '#1E1B09' : '#0F172A'}" 
+              stroke="${champWinner ? '#F59E0B' : '#334155'}" 
+              stroke-width="${champWinner ? '2.5' : '1.5'}" 
+              class="${champWinner ? 'trophy-glow' : ''}" />
+
+        <text x="${champCardW / 2}" y="28" font-size="22" text-anchor="middle">
+          ${champWinner ? '🏆' : '⚔️'}
+        </text>
+
+        <text x="${champCardW / 2}" y="48" font-size="12" font-weight="800" 
+              fill="${champWinner ? '#FBBF24' : '#64748B'}" text-anchor="middle" font-family="Inter">
+          ${champWinner ? champWinner.name : "Esperando Campeón"}
+        </text>
+
+        <text x="${champCardW / 2}" y="65" font-size="10" font-weight="600" 
+              fill="${champWinner ? '#34D399' : '#475569'}" text-anchor="middle" font-family="JetBrains Mono">
+          ${champWinner ? `DUELISTA #${champWinner.numStr}` : "Final sin definir"}
+        </text>
+      `;
+
+      nodesLayer.appendChild(champGroup);
+
+      // Actualizar resumen textual inferior
+      updateSummaryText(data);
+    }
+
+    // Alternar ganador de un combate
+    function toggleWinner(matchId, player) {
+      if (!player) return;
+
+      if (matchWinners[matchId] && matchWinners[matchId].id === player.id) {
+        // Deseleccionar si ya era el ganador
+        delete matchWinners[matchId];
+      } else {
+        matchWinners[matchId] = player;
+      }
+
+      // Limpiar victorias río abajo que ya no sean válidas
+      cleanupDownstream(matchId);
+
+      // Re-renderizar diagrama con nuevas flechas y ganadores
+      renderDiagram();
+    }
+
+    // Limpia resultados posteriores si se cambia una ronda anterior
+    function cleanupDownstream(changedMatchId) {
+      const parts = changedMatchId.match(/r(\d+)_m(\d+)/);
+      if (!parts) return;
+      const round = parseInt(parts[1], 10);
+      const matchIdx = parseInt(parts[2], 10);
+
+      const nextRound = round + 1;
+      const nextMatchIdx = Math.floor(matchIdx / 2);
+      const nextMatchId = `r${nextRound}_m${nextMatchIdx}`;
+
+      if (matchWinners[nextMatchId]) {
+        delete matchWinners[nextMatchId];
+        cleanupDownstream(nextMatchId);
+      }
+    }
+
+    // Actualiza la barra de resumen en texto
+    function updateSummaryText(data) {
+      const summary = document.getElementById("bracketSummary");
+      const N = data.totalPlayers;
+      const P = data.bracketSize;
+      const byes = data.totalByes;
+      const prelimMatches = (N - byes) / 2;
+
+      if (byes === 0) {
+        summary.innerHTML = `
+          <div class="flex items-center gap-1.5">
+            <span class="text-amber-400">⚡</span>
+            <span>Cuadro perfecto de <strong>${N} jugadores</strong> (${P} llaves). Todos combaten desde primera ronda.</span>
+          </div>
+          <span class="text-[11px] font-mono-num bg-slate-900 px-2 py-0.5 rounded text-amber-300 border border-slate-800">${data.totalRounds} Rondas</span>
+        `;
+      } else {
+        summary.innerHTML = `
+          <div class="flex items-center gap-1.5">
+            <span class="text-emerald-400">⚡</span>
+            <span><strong>${N} participantes:</strong> ${prelimMatches * 2} disputan preliminares y <strong>${byes} con pase libre [BYE]</strong> avanzan directo con flecha verde.</span>
+          </div>
+          <span class="text-[11px] font-mono-num bg-slate-900 px-2 py-0.5 rounded text-emerald-400 border border-slate-800">${byes} Pases Directos</span>
+        `;
+      }
+    }
+
+    // Modificar cantidad de jugadores
+    function setPlayers(n) {
+      currentPlayers = Math.max(2, Math.min(32, parseInt(n, 10) || 2));
+      document.getElementById("playerInput").value = currentPlayers;
+      matchWinners = {}; // Reiniciar marcas al cambiar participantes
+      renderDiagram();
+    }
+
+    //    // Control de Zoom suave
+    function updateZoom(newZoom) {
+      zoomLevel = Math.max(0.5, Math.min(1.5, Math.round(newZoom * 10) / 10));
+      document.getElementById("diagramTransformWrapper").style.transform = `scale(${zoomLevel})`;
+      document.getElementById("zoomLabel").textContent = `${Math.round(zoomLevel * 100)}%`;
+    }
+
+    // Generar formato de texto compatible para WhatsApp
+    function generateWhatsAppText() {
+      const data = buildTournamentData(currentPlayers);
+      const P = data.bracketSize;
+      const N = data.totalPlayers;
+      const byes = data.totalByes;
+
+      let msg = `🏆 *TORNEO DE DUELO 1 VS 1* 🏆\n`;
+      msg += `👥 *Participantes:* ${N} jugadores (Cuadro de ${P})\n`;
+      if (byes > 0) {
+        msg += `⚡ *Pases directos [BYE]:* ${byes} jugadores\n`;
+      }
+      msg += `─────────────────────────\n\n`;
+
+      msg += `*PRIMERA RONDA / PRELIMINARES:*\n`;
+      data.rounds[0].forEach((m, idx) => {
+        if (m.isBye) {
+          msg += `• Duelo ${idx + 1}: [${m.player1.numStr}] ${m.player1.name} ➔ *[ AVANZA DIRECTO A CUARTOS ]*\n`;
+        } else {
+          msg += `• Duelo ${idx + 1}: [${m.player1.numStr}] ${m.player1.name} ⚔️ [${m.player2.numStr}] ${m.player2.name}\n`;
+        }
+      });
+
+      msg += `\n🎯 *Rondas Totales:* ${data.totalRounds} (Preliminares ➔ Cuartos ➔ Semis ➔ Gran Final)\n`;
+      msg += `¡A defender con honor en el tatami! ⚔️`;
+
+      return msg;
+    }
+
+    // Copiar al portapapeles con fallback robusto
+    function copyToClipboard(text, successMsg) {
+      const tempArea = document.createElement("textarea");
+      tempArea.value = text;
+      tempArea.style.position = "fixed";
+      tempArea.style.opacity = "0";
+      document.body.appendChild(tempArea);
+      tempArea.select();
+
+      let success = false;
+      try {
+        success = document.execCommand("copy");
+      } catch (err) {
+        success = false;
+      }
+      document.body.removeChild(tempArea);
+
+      showToast(success ? successMsg : "No se pudo copiar automáticamente.");
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      document.getElementById("toastMsg").textContent = msg;
+      toast.classList.remove("opacity-0", "pointer-events-none");
+      setTimeout(() => {
+        toast.classList.add("opacity-0", "pointer-events-none");
+      }, 2400);
+    }
+
+    // Listeners del DOM
+    document.addEventListener("DOMContentLoaded", () => {
+      renderDiagram();
+
+      // Selector de número
+      const input = document.getElementById("playerInput");
+      input.addEventListener("change", () => setPlayers(input.value));
+      input.addEventListener("input", () => {
+        const val = parseInt(input.value, 10);
+        if (!isNaN(val) && val >= 2 && val <= 32) {
+          setPlayers(val);
+        }
+      });
+
+      document.getElementById("btnDecrease").addEventListener("click", () => {
+        setPlayers(currentPlayers - 1);
+      });
+
+      document.getElementById("btnIncrease").addEventListener("click", () => {
+        setPlayers(currentPlayers + 1);
+      });
+
+      document.getElementById("btnResetWinners").addEventListener("click", () => {
+        matchWinners = {};
+        renderDiagram();
+        showToast("Marcadores reiniciados");
+      });
+
+      // Zoom
+      document.getElementById("btnZoomIn").addEventListener("click", () => updateZoom(zoomLevel + 0.1));
+      document.getElementById("btnZoomOut").addEventListener("click", () => updateZoom(zoomLevel - 0.1));
+      document.getElementById("btnResetZoom").addEventListener("click", () => updateZoom(1.0));
+
+      // Copiar texto para WhatsApp
+      document.getElementById("btnCopyText").addEventListener("click", () => {
+        const text = generateWhatsAppText();
+        copyToClipboard(text, "¡Cuadro copiado para WhatsApp!");
+      });
+    });
+  </script>
+</body>
+</html>
